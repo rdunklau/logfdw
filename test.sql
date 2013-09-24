@@ -7,23 +7,28 @@ CREATE SERVER log_server
   OPTIONS (wrapper 'logfdw.LogFDW');
 
 CREATE FOREIGN TABLE logtable (
-  message VARCHAR
-) SERVER log_server OPTIONS (
-  log_file './log'
-);
-
--- SELECT * from logtable;
-
-SELECT count(1) from logtable;
-
-CREATE FOREIGN TABLE logtable_with_severity (
+  date timestamp OPTIONS (is_timestamp 't'),
   severity VARCHAR,
   message VARCHAR
 ) SERVER log_server OPTIONS (
   log_file './log',
-  line_pattern '^(?:(\w*):) (.*)'
+  line_pattern '^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (?:(\w*):) (.*)'
 );
 
-SELECT * from logtable_with_severity;
+CREATE FOREIGN TABLE logtable_without_date (
+  date timestamp,
+  severity VARCHAR,
+  message VARCHAR
+) SERVER log_server OPTIONS (
+  log_file './log',
+  line_pattern '^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (?:(\w*):) (.*)'
+);
 
-SELECT distinct severity from logtable_with_severity;
+
+
+
+select * from logtable where date < '2013-09-24 13:43:46';
+
+
+select * from logtable_without_date where date < '2013-09-24 13:43:46';
+
