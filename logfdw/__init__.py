@@ -45,3 +45,39 @@ class LogFDW(ForeignDataWrapper):
                             # Stop iteration here
                             return
                     yield match.groups()
+
+
+def get_id_value(quals):
+    for qual in quals:
+        if qual.field_name == 'id' and qual.operator == '=':
+            return qual.value
+    return None
+
+
+class IndexedFDW(ForeignDataWrapper):
+
+    def __init__(self, fdw_options, fdw_columns):
+        self.is_indexed = (fdw_options.get('is_indexed', 'False')) != 'False'
+
+    def get_rel_size(self, quals, columns):
+        if self.is_indexed:
+            val = get_id_value(quals)
+            if val:
+                return (1, 40)
+        return (100000, 40)
+
+    def get_path_keys(self):
+        if self.is_indexed:
+            return [(('id',), 1)]
+        return []
+
+    def execute(self, quals, columns):
+        val = get_id_value(quals)
+        if self.is_indexed:
+            if val:
+                yield {'id': val,
+                    'value': 'Value %d' % val}
+                return
+        for i in xrange(100000):
+            yield {'id': i,
+                   'value': 'Value %d' % i}

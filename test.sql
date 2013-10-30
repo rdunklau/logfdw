@@ -25,6 +25,7 @@ CREATE FOREIGN TABLE logtable_without_date (
 );
 
 
+select * from logtable where date < '2013-09-24 13:43:46';
 
 
 select * from logtable where date < '2013-09-24 13:43:46';
